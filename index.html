@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>苏州买菜清单</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #f5f4f0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 0 0 40px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+    padding: 0 16px 32px;
+  }
+
+  .header {
+    text-align: center;
+    padding: 32px 0 20px;
+  }
+  .header .logo { font-size: 40px; margin-bottom: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; }
+  .header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+  .date-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff;
+    border-radius: 10px;
+    padding: 11px 16px;
+    margin-bottom: 14px;
+    border: 0.5px solid #e0ddd6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .date-bar .left { font-size: 13px; color: #666; }
+  .jieqi-badge {
+    background: #e1f5ee; color: #0f6e56;
+    font-size: 12px; padding: 4px 12px;
+    border-radius: 20px; font-weight: 600;
+  }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stat {
+    background: #fff; border-radius: 10px; padding: 12px 8px;
+    text-align: center; border: 0.5px solid #e0ddd6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .stat .num { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+  .stat .lbl { font-size: 11px; color: #999; margin-top: 3px; }
+
+  .progress-bar {
+    background: #e8e6e0; border-radius: 20px; height: 6px;
+    overflow: hidden; margin-bottom: 5px;
+  }
+  .progress-fill {
+    height: 100%; background: #1d9e75;
+    border-radius: 20px; transition: width 0.35s ease;
+  }
+  .progress-label { font-size: 12px; color: #999; text-align: right; margin-bottom: 16px; }
+
+  .legend {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 12px; font-size: 12px; color: #999;
+  }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: #1d9e75; flex-shrink: 0; }
+
+  .categories { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+
+  .cat-card {
+    background: #fff;
+    border: 0.5px solid #e0ddd6;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .cat-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 0.5px solid #f0ede6;
+  }
+  .cat-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .cat-name { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .cat-tip { font-size: 11px; color: #aaa; margin-top: 1px; }
+
+  .items-grid { padding: 10px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .item-row {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+    padding: 2px 0;
+  }
+  .item-left { display: flex; align-items: center; gap: 10px; }
+  .checkbox {
+    width: 22px; height: 22px; border-radius: 7px;
+    border: 1.5px solid #ccc;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+    background: #fff;
+  }
+  .checkbox.checked { background: #1d9e75; border-color: #1d9e75; }
+  .checkbox.checked::after { content: '✓'; color: #fff; font-size: 13px; }
+  .item-name { font-size: 15px; color: #1a1a1a; transition: color 0.15s; }
+  .item-name.checked { color: #bbb; text-decoration: line-through; }
+  .item-right { display: flex; align-items: center; gap: 8px; }
+  .season-dot { width: 7px; height: 7px; border-radius: 50%; background: #1d9e75; flex-shrink: 0; }
+  .item-qty { font-size: 13px; color: #aaa; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .btn {
+    padding: 13px; border-radius: 10px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    border: 0.5px solid #d4d0c8;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: all 0.15s; background: #fff; color: #333;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:hover { background: #f5f3ef; }
+  .btn:active { transform: scale(0.97); }
+  .btn i { font-size: 17px; }
+
+  .ai-note {
+    background: #e1f5ee;
+    border: 0.5px solid #9fe1cb;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px; color: #0f6e56; line-height: 1.6;
+  }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1a1a1a; color: #fff;
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; opacity: 0; pointer-events: none;
+    transition: all 0.25s; white-space: nowrap;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">🧺</div>
+    <h1>今日买菜清单</h1>
+    <p id="date-label">加载中…</p>
+  </div>
+
+  <div class="date-bar">
+    <div class="left" id="week-label">星期日</div>
+    <div class="jieqi-badge" id="jieqi-badge">节气</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="total-items">0</div><div class="lbl">种食材</div></div>
+    <div class="stat"><div class="num" id="checked-items">0</div><div class="lbl">已买到</div></div>
+    <div class="stat"><div class="num" id="season-count">0</div><div class="lbl">当令食材</div></div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  <div class="progress-label" id="progress-label">还未开始采购</div>
+
+  <div class="legend"><div class="legend-dot"></div><span>绿点 = 苏州当令食材</span></div>
+
+  <div class="categories" id="categories"></div>
+
+  <div class="actions">
+    <button class="btn" onclick="generateList()">
+      <i class="ti ti-refresh"></i> 换一套菜单
+    </button>
+    <button class="btn" onclick="copyList()">
+      <i class="ti ti-copy"></i> 复制清单
+    </button>
+  </div>
+
+  <div class="ai-note" id="ai-note"></div>
+</div>
+
+<div class="toast" id="toast">已复制到剪贴板 ✓</div>
+
+<script>
+const JIEQI_MAP = [
+  [1,5,'小寒'],[1,20,'大寒'],[2,4,'立春'],[2,19,'雨水'],
+  [3,6,'惊蛰'],[3,21,'春分'],[4,5,'清明'],[4,20,'谷雨'],
+  [5,6,'立夏'],[5,21,'小满'],[6,6,'芒种'],[6,21,'夏至'],
+  [7,7,'小暑'],[7,23,'大暑'],[8,7,'立秋'],[8,23,'处暑'],
+  [9,8,'白露'],[9,23,'秋分'],[10,8,'寒露'],[10,23,'霜降'],
+  [11,7,'立冬'],[11,22,'小雪'],[12,7,'大雪'],[12,22,'冬至']
+];
+
+const SEASON_DB = {
+  春: {
+    蔬菜: [{n:'荠菜',s:true},{n:'韭菜',s:true},{n:'春笋',s:true},{n:'豌豆苗',s:true},{n:'菠菜',s:true},{n:'莴苣',s:true},{n:'蒜苗',s:false},{n:'西红柿',s:false}],
+    荤腥: [{n:'河鲫鱼',s:true},{n:'猪里脊',s:false},{n:'鸡蛋',s:false},{n:'草鱼',s:true},{n:'虾仁',s:false},{n:'猪肉馅',s:false}],
+    豆制品粮: [{n:'老豆腐',s:false},{n:'粳米',s:false},{n:'薏仁',s:false},{n:'豆皮',s:false}],
+    调料干货: [{n:'姜',s:false},{n:'大蒜',s:false},{n:'料酒',s:false},{n:'酱油',s:false}]
+  },
+  夏: {
+    蔬菜: [{n:'丝瓜',s:true},{n:'苋菜',s:true},{n:'茭白',s:true},{n:'毛豆',s:true},{n:'黄瓜',s:true},{n:'冬瓜',s:false},{n:'茄子',s:false},{n:'青椒',s:false}],
+    荤腥: [{n:'鲈鱼',s:true},{n:'猪肋排',s:false},{n:'鸡蛋',s:false},{n:'虾',s:false},{n:'鸭肉',s:true},{n:'牛肉',s:false}],
+    豆制品粮: [{n:'嫩豆腐',s:false},{n:'绿豆',s:true},{n:'粳米',s:false},{n:'百合',s:false}],
+    调料干货: [{n:'姜',s:false},{n:'葱',s:false},{n:'香油',s:false},{n:'盐',s:false}]
+  },
+  秋: {
+    蔬菜: [{n:'莲藕',s:true},{n:'芋头',s:true},{n:'南瓜',s:true},{n:'菱角',s:true},{n:'白萝卜',s:false},{n:'花菜',s:false},{n:'青菜',s:false},{n:'山药',s:false}],
+    荤腥: [{n:'大闸蟹',s:true},{n:'鸭肉',s:false},{n:'猪腱子',s:false},{n:'鸡蛋',s:false},{n:'带鱼',s:false},{n:'羊肉',s:false}],
+    豆制品粮: [{n:'豆腐干',s:false},{n:'粳米',s:false},{n:'红枣',s:false},{n:'花生',s:false}],
+    调料干货: [{n:'桂皮',s:false},{n:'八角',s:false},{n:'老抽',s:false},{n:'醋',s:false}]
+  },
+  冬: {
+    蔬菜: [{n:'青菜',s:true},{n:'冬笋',s:true},{n:'雪里蕻',s:true},{n:'大白菜',s:false},{n:'胡萝卜',s:false},{n:'土豆',s:false},{n:'洋葱',s:false},{n:'芹菜',s:false}],
+    荤腥: [{n:'猪蹄',s:false},{n:'羊排',s:false},{n:'鸡蛋',s:false},{n:'鳊鱼',s:true},{n:'牛腩',s:false},{n:'腊肉',s:true}],
+    豆制品粮: [{n:'冻豆腐',s:false},{n:'糯米',s:false},{n:'枸杞',s:false},{n:'红豆',s:false}],
+    调料干货: [{n:'姜',s:false},{n:'黄酒',s:false},{n:'冰糖',s:false},{n:'桂皮',s:false}]
+  }
+};
+
+const CAT_META = {
+  蔬菜:  {icon:'🥦', bg:'#e1f5ee', tip:'建议早市购买'},
+  荤腥:  {icon:'🐟', bg:'#faece7', tip:'新鲜度优先'},
+  豆制品粮:{icon:'🌾', bg:'#faeeda', tip:'可多备一周量'},
+  调料干货:{icon:'🧄', bg:'#eeedfe', tip:'家中常备'}
+};
+
+const QTY = {
+  蔬菜: ['300g','250g','400g','200g','500g'],
+  荤腥: ['500g','600g','3只','2条','1斤'],
+  豆制品粮: ['1块','500g','250g','200g'],
+  调料干货: ['少许','1头','适量','1瓶']
+};
+
+const NOTES = {
+  春:['🌱 春季万物生发，荠菜、春笋是苏州人的时令至爱，建议清淡烹调，少油少盐。','🌿 今日荤素配比约 3:7，韭菜炒蛋补阳气，鲫鱼汤暖胃正当时。'],
+  夏:['🌿 今日推荐以清热降火为主，适合苏州初夏湿热天气。多吃丝瓜、苋菜等水分足的蔬菜。','🫧 夏日以清淡为主，茭白炒毛豆是苏州人夏天的家常菜，鲈鱼清蒸补蛋白质。'],
+  秋:['🍂 秋燥当令，莲藕排骨汤养阴润燥，大闸蟹是苏州秋天不可错过的时令美味。','🌕 秋季进补好时节，南瓜蒸软烂，山药煮粥，荤素 4:6 均衡搭配。'],
+  冬:['❄️ 冬季宜温补，青菜冬笋是苏州冬天当令，羊排或猪蹄煲汤驱寒效果极佳。','🔥 今日以温热食材为主，建议炖煮烹调，少凉拌。糯米煮粥暖胃养脾。']
+};
+
+const WEEKS = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+
+let checkedSet = new Set();
+let currentData = [];
+
+function getSeason(m) {
+  if ([3,4,5].includes(m)) return '春';
+  if ([6,7,8].includes(m)) return '夏';
+  if ([9,10,11].includes(m)) return '秋';
+  return '冬';
+}
+
+function getJieqi(month, day) {
+  let best = '节气中';
+  for (let i = JIEQI_MAP.length - 1; i >= 0; i--) {
+    const [m, d, name] = JIEQI_MAP[i];
+    if (month > m || (month === m && day >= d)) { best = name; break; }
+  }
+  return best;
+}
+
+function pick(arr, n) {
+  return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
+}
+
+function generateList() {
+  checkedSet.clear();
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const season = getSeason(month);
+
+  document.getElementById('date-label').textContent = `${now.getFullYear()}年${month}月${day}日`;
+  document.getElementById('week-label').textContent = WEEKS[now.getDay()];
+  document.getElementById('jieqi-badge').textContent = getJieqi(month, day);
+
+  const db = SEASON_DB[season];
+  currentData = [];
+
+  Object.keys(db).forEach(cat => {
+    const all = db[cat];
+    const seasonal = all.filter(x => x.s);
+    const regular = all.filter(x => !x.s);
+    let chosen = [];
+    if (cat === '蔬菜') {
+      chosen = [...pick(seasonal, Math.min(3, seasonal.length)), ...pick(regular, 2)];
+    } else if (cat === '荤腥') {
+      chosen = pick(all, 3);
+    } else {
+      chosen = pick(all, 3);
+    }
+    const qtys = QTY[cat];
+    currentData.push({ cat, items: chosen.map((item, i) => ({...item, qty: qtys[i % qtys.length]})) });
+  });
+
+  const totalItems = currentData.reduce((s, c) => s + c.items.length, 0);
+  const seasonCount = currentData.reduce((s, c) => s + c.items.filter(x => x.s).length, 0);
+  document.getElementById('total-items').textContent = totalItems;
+  document.getElementById('season-count').textContent = seasonCount;
+
+  const noteArr = NOTES[season];
+  document.getElementById('ai-note').textContent = noteArr[Math.floor(Math.random() * noteArr.length)];
+
+  renderCategories();
+  updateProgress();
+}
+
+function renderCategories() {
+  const el = document.getElementById('categories');
+  el.innerHTML = '';
+  currentData.forEach(({ cat, items }) => {
+    const meta = CAT_META[cat];
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.innerHTML = `
+      <div class="cat-head">
+        <div class="cat-icon" style="background:${meta.bg}">${meta.icon}</div>
+        <div>
+          <div class="cat-name">${cat}</div>
+          <div class="cat-tip">${meta.tip}</div>
+        </div>
+      </div>
+      <div class="items-grid">
+        ${items.map(item => {
+          const key = item.n;
+          const checked = checkedSet.has(key);
+          return `<div class="item-row" data-key="${key}">
+            <div class="item-left">
+              <div class="checkbox ${checked ? 'checked' : ''}"></div>
+              <span class="item-name ${checked ? 'checked' : ''}">${item.n}</span>
+            </div>
+            <div class="item-right">
+              ${item.s ? '<div class="season-dot"></div>' : ''}
+              <span class="item-qty">${item.qty}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    el.appendChild(card);
+  });
+
+  el.querySelectorAll('.item-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const key = row.dataset.key;
+      if (checkedSet.has(key)) checkedSet.delete(key);
+      else checkedSet.add(key);
+      renderCategories();
+      updateProgress();
+    });
+  });
+}
+
+function updateProgress() {
+  const total = currentData.reduce((s, c) => s + c.items.length, 0);
+  const done = checkedSet.size;
+  document.getElementById('checked-items').textContent = done;
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('progress').style.width = pct + '%';
+  if (done === 0) document.getElementById('progress-label').textContent = '还未开始采购';
+  else if (done < total) document.getElementById('progress-label').textContent = `已买 ${done}/${total} 种，加油！`;
+  else document.getElementById('progress-label').textContent = '✅ 今日食材已买齐！';
+}
+
+function copyList() {
+  const now = new Date();
+  let text = `🧺 今日买菜清单 ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}\n`;
+  currentData.forEach(({ cat, items }) => {
+    text += `\n【${cat}】\n`;
+    items.forEach(item => {
+      const mark = checkedSet.has(item.n) ? '✓' : '○';
+      text += `${mark} ${item.n}  ${item.qty}${item.s ? ' 🌿' : ''}\n`;
+    });
+  });
+  text += '\n（🌿 = 苏州当令食材）';
+  navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板 ✓')).catch(() => showToast('请手动长按复制'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+generateList();
+</script>
+</body>
+</html>
