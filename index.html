@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>苏州买菜清单</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; background: #f5f4f0; min-height: 100vh; display: flex; justify-content: center; padding: 0 0 40px; }
+.app { width: 100%; max-width: 420px; padding: 0 16px 32px; }
+.header { text-align: center; padding: 32px 0 20px; }
+.header .logo { font-size: 40px; margin-bottom: 8px; }
+.header h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; }
+.date-bar { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 10px; padding: 11px 16px; margin-bottom: 14px; border: 0.5px solid #e0ddd6; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.date-left { font-size: 13px; color: #666; }
+.jieqi-badge { background: #e1f5ee; color: #0f6e56; font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+.mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 14px; border: 0.5px solid #d4d0c8; border-radius: 10px; overflow: hidden; background: #fff; }
+.mode-btn { padding: 11px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: #fff; color: #888; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
+.mode-btn:first-child { border-right: 0.5px solid #d4d0c8; }
+.mode-btn.active { background: #1d9e75; color: #fff; }
+.section-label { font-size: 13px; font-weight: 600; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.dish-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.dish-card { background: #fff; border: 0.5px solid #e0ddd6; border-radius: 14px; padding: 12px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.dish-card.leaf { border-left: 3px solid #1d9e75; }
+.dish-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+.dish-name { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.tags { display: flex; gap: 4px; flex-shrink: 0; margin-left: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.dish-tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+.tag-meat { background: #faece7; color: #993c1d; }
+.tag-veg  { background: #e1f5ee; color: #0f6e56; }
+.tag-soup { background: #e6f1fb; color: #185fa5; }
+.tag-readymade { background: #eeedfe; color: #534ab7; }
+.tag-leaf { background: #e1f5ee; color: #0f6e56; }
+.dish-ingr { font-size: 12px; color: #888; line-height: 1.5; }
+.dish-tip { font-size: 11px; color: #bbb; margin-top: 5px; font-style: italic; }
+.divider { height: 0.5px; background: #ede9e0; margin: 14px 0; }
+.legend-row { display: flex; gap: 14px; margin-bottom: 9px; flex-wrap: wrap; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #999; }
+.ld-leaf { width: 10px; height: 3px; border-radius: 2px; background: #1d9e75; }
+.ld-season { width: 6px; height: 6px; border-radius: 50%; background: #1d9e75; }
+.ld-rm { width: 6px; height: 6px; border-radius: 50%; background: #534ab7; }
+.progress-bar { background: #e8e6e0; border-radius: 20px; height: 6px; overflow: hidden; margin-bottom: 5px; }
+.progress-fill { height: 100%; background: #1d9e75; border-radius: 20px; transition: width 0.35s ease; }
+.progress-label { font-size: 11px; color: #999; text-align: right; margin-bottom: 14px; }
+.grocery-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.grocery-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 13px; background: #fff; border: 0.5px solid #e0ddd6; border-radius: 10px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.grocery-left { display: flex; align-items: center; gap: 10px; }
+.cb { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid #ccc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; background: #fff; }
+.cb.done { background: #1d9e75; border-color: #1d9e75; }
+.cb.done::after { content: '✓'; color: #fff; font-size: 13px; }
+.gr-name { font-size: 14px; color: #1a1a1a; transition: color 0.15s; }
+.gr-name.done { color: #bbb; text-decoration: line-through; }
+.gr-right { display: flex; align-items: center; gap: 7px; }
+.season-dot { width: 6px; height: 6px; border-radius: 50%; background: #1d9e75; }
+.readymade-dot { width: 6px; height: 6px; border-radius: 50%; background: #534ab7; }
+.gr-qty { font-size: 12px; color: #aaa; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.btn { padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; border: 0.5px solid #d4d0c8; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all 0.15s; background: #fff; color: #333; -webkit-tap-highlight-color: transparent; }
+.btn:hover { background: #f5f3ef; }
+.btn:active { transform: scale(0.97); }
+.btn i { font-size: 17px; }
+.ai-note { background: #e1f5ee; border: 0.5px solid #9fe1cb; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #0f6e56; line-height: 1.6; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.25s; white-space: nowrap; z-index: 100; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">🧺</div>
+    <h1>今日菜单 & 买菜清单</h1>
+  </div>
+  <div class="date-bar">
+    <div class="date-left" id="week-label">星期日</div>
+    <div class="jieqi-badge" id="jieqi-badge">节气</div>
+  </div>
+  <div class="mode-switch">
+    <button class="mode-btn active" id="btn-quick" onclick="setMode('quick')">
+      <i class="ti ti-bolt"></i> 快手模式
+    </button>
+    <button class="mode-btn" id="btn-fancy" onclick="setMode('fancy')">
+      <i class="ti ti-sparkles"></i> 精致模式
+    </button>
+  </div>
+  <div class="section-label"><i class="ti ti-bowl-chopsticks"></i> 今日一套菜 · 午晚通用</div>
+  <div class="dish-cards" id="dish-cards"></div>
+  <div class="divider"></div>
+  <div class="section-label"><i class="ti ti-shopping-cart"></i> 买菜清单</div>
+  <div class="legend-row">
+    <div class="leg-item"><div class="ld-leaf"></div><span>今日叶子菜</span></div>
+    <div class="leg-item"><div class="ld-season"></div><span>当令食材</span></div>
+    <div class="leg-item"><div class="ld-rm"></div><span>熟食直接买</span></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  <div class="progress-label" id="progress-label">还未开始采购</div>
+  <div class="grocery-grid" id="grocery-grid"></div>
+  <div class="actions">
+    <button class="btn" onclick="generate()"><i class="ti ti-refresh"></i> 换一套菜</button>
+    <button class="btn" onclick="copyList()"><i class="ti ti-copy"></i> 复制清单</button>
+  </div>
+  <div class="ai-note" id="ai-note"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const JIEQI_MAP=[[1,5,'小寒'],[1,20,'大寒'],[2,4,'立春'],[2,19,'雨水'],[3,6,'惊蛰'],[3,21,'春分'],[4,5,'清明'],[4,20,'谷雨'],[5,6,'立夏'],[5,21,'小满'],[6,6,'芒种'],[6,21,'夏至'],[7,7,'小暑'],[7,23,'大暑'],[8,7,'立秋'],[8,23,'处暑'],[9,8,'白露'],[9,23,'秋分'],[10,8,'寒露'],[10,23,'霜降'],[11,7,'立冬'],[11,22,'小雪'],[12,7,'大雪'],[12,22,'冬至']];
+const WEEKS=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+
+const READYMADE=[
+  {name:'苏式爆鱼',ingr:[{n:'苏式爆鱼',q:'250g',rm:true}],tip:'糖醋酱汁浸透，切块直接上桌'},
+  {name:'藏书羊肉',ingr:[{n:'藏书羊肉',q:'300g',rm:true}],tip:'白汤清炖，切片蘸蒜泥香醋'},
+  {name:'卤鹅',ingr:[{n:'卤鹅',q:'半只',rm:true}],tip:'斩块摆盘，皮脆肉嫩，淋点卤汁'},
+  {name:'四喜烤麸',ingr:[{n:'四喜烤麸',q:'200g',rm:true}],tip:'老字号素卤，甜咸适口，直接上桌'},
+  {name:'糟鸡',ingr:[{n:'糟鸡',q:'半只',rm:true}],tip:'酒香浓郁，夏天冷食最爽，斩块上桌'},
+  {name:'糟毛豆',ingr:[{n:'糟毛豆',q:'200g',rm:true}],tip:'酒香糟味，夏日特色，直接上桌'},
+  {name:'叉烧',ingr:[{n:'叉烧',q:'200g',rm:true}],tip:'切片摆盘，淋蜂蜜汁，配米饭香甜'},
+  {name:'北京烤鸭',ingr:[{n:'北京烤鸭',q:'半只',rm:true}],tip:'斩块摆盘，配甜面酱，也可直接啃'},
+  {name:'烧鹅',ingr:[{n:'烧鹅',q:'半只',rm:true}],tip:'皮脆油亮，斩块蘸梅酱解腻'},
+  {name:'白切鸡',ingr:[{n:'白切鸡',q:'半只',rm:true}],tip:'皮滑肉嫩，蘸姜葱油，清淡苏州人最爱'},
+  {name:'盐水鸭',ingr:[{n:'盐水鸭',q:'半只',rm:true}],tip:'斩块直接上桌，夏天尤佳'},
+  {name:'卤鸡腿',ingr:[{n:'卤鸡腿',q:'2只',rm:true}],tip:'肉质鲜嫩，切块摆盘'},
+  {name:'卤鸡爪',ingr:[{n:'卤鸡爪',q:'300g',rm:true}],tip:'稍微加热，撒葱花上桌'},
+  {name:'酱牛肉',ingr:[{n:'酱牛肉',q:'200g',rm:true}],tip:'切薄片加葱丝香油，即可上桌'},
+  {name:'夫妻肺片',ingr:[{n:'夫妻肺片',q:'250g',rm:true}],tip:'买回加香菜即食'},
+  {name:'卤猪蹄',ingr:[{n:'卤猪蹄',q:'2只',rm:true}],tip:'酥烂入味，加热后口感更佳'},
+  {name:'卤猪耳朵',ingr:[{n:'卤猪耳朵',q:'200g',rm:true}],tip:'切丝加香油醋拌，爽脆下酒'},
+  {name:'卤羊糕',ingr:[{n:'卤羊糕',q:'200g',rm:true}],tip:'切片蘸蒜泥醋，冬天最香'},
+  {name:'花生米',ingr:[{n:'花生米',q:'100g',rm:true}],tip:'香酥入味，配粥配饭都好'},
+];
+
+const LEAF_VEG={
+  春:[
+    {name:'清炒菠菜',ingr:[{n:'菠菜',q:'300g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'焯水去草酸，蒜香爆炒1分钟'},
+    {name:'清炒荠菜',ingr:[{n:'荠菜',q:'250g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'荠菜焯水后蒜炒，春天特有鲜味'},
+    {name:'清炒豌豆苗',ingr:[{n:'豌豆苗',q:'250g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'大火爆炒1分钟，变色立刻出锅'},
+    {name:'韭菜炒鸡蛋',ingr:[{n:'韭菜',q:'200g',s:true,leaf:true},{n:'鸡蛋',q:'3只'}],tip:'韭菜后放，嫩而不老'},
+    {name:'清炒莴苣',ingr:[{n:'莴苣',q:'300g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'莴苣茎叶一起炒，大火20秒脆嫩出锅'},
+  ],
+  夏:[
+    {name:'清炒苋菜',ingr:[{n:'苋菜',q:'300g',s:true,leaf:true},{n:'大蒜',q:'3瓣'}],tip:'焯水蒜炒，夏天清热降火'},
+    {name:'蒜泥空心菜',ingr:[{n:'空心菜',q:'300g',s:true,leaf:true},{n:'大蒜',q:'3瓣'}],tip:'大火猛炒，蒜香四溢，30秒出锅'},
+    {name:'清炒地瓜叶',ingr:[{n:'地瓜叶',q:'250g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'嫩叶快炒，清甜无苦味'},
+    {name:'白灼生菜',ingr:[{n:'生菜',q:'300g',leaf:true},{n:'蒸鱼豉油',q:'适量'}],tip:'沸水烫10秒，淋豉油，最快手'},
+    {name:'蒜炒油麦菜',ingr:[{n:'油麦菜',q:'300g',leaf:true},{n:'大蒜',q:'3瓣'}],tip:'大火快炒，清爽不油腻'},
+  ],
+  秋:[
+    {name:'清炒青菜',ingr:[{n:'青菜',q:'300g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'苏州人家秋冬必备，大火爆炒2分钟'},
+    {name:'蒜炒菠菜',ingr:[{n:'菠菜',q:'300g',leaf:true},{n:'大蒜',q:'2瓣'}],tip:'焯水后蒜炒，去草酸留鲜味'},
+    {name:'白灼生菜',ingr:[{n:'生菜',q:'300g',leaf:true},{n:'蒸鱼豉油',q:'适量'}],tip:'沸水烫10秒，淋豉油即成'},
+    {name:'清炒小白菜',ingr:[{n:'小白菜',q:'300g',leaf:true},{n:'大蒜',q:'2瓣'}],tip:'苏州常见叶菜，清甜快炒'},
+    {name:'上汤菠菜',ingr:[{n:'菠菜',q:'300g',leaf:true},{n:'皮蛋',q:'1只'},{n:'咸蛋',q:'1只'}],tip:'皮蛋咸蛋提鲜，菠菜嫩绿清甜'},
+  ],
+  冬:[
+    {name:'清炒青菜',ingr:[{n:'青菜',q:'300g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'苏州冬天当令青菜，霜打后格外甜'},
+    {name:'清炒大白菜',ingr:[{n:'大白菜',q:'400g',leaf:true},{n:'葱',q:'少许'}],tip:'白菜炒软出汁，冬日暖胃'},
+    {name:'蒜炒雪里蕻',ingr:[{n:'雪里蕻',q:'250g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'浸泡减咸后快炒，苏州冬天特色'},
+    {name:'上汤菠菜',ingr:[{n:'菠菜',q:'300g',leaf:true},{n:'皮蛋',q:'1只'},{n:'咸蛋',q:'1只'}],tip:'皮蛋咸蛋提鲜，冬天暖身'},
+    {name:'清炒塌棵菜',ingr:[{n:'塌棵菜',q:'300g',s:true,leaf:true},{n:'大蒜',q:'2瓣'}],tip:'苏州冬季特有叶菜，霜打后更甜'},
+  ]
+};
+
+const VEG_DISHES={
+  春:[
+    {name:'莴苣炒香干',type:'veg',ingr:[{n:'莴苣',q:'250g',s:true},{n:'香干',q:'150g'}],tip:'莴苣切片，香干切条，大火快炒，清爽鲜香'},
+    {name:'香菇烧豆腐',type:'veg',ingr:[{n:'香菇',q:'200g'},{n:'老豆腐',q:'1块'},{n:'酱油',q:'1勺'}],tip:'香菇提鲜，豆腐吸汁，小火慢烧入味'},
+    {name:'平菇炒鸡蛋',type:'veg',ingr:[{n:'平菇',q:'300g'},{n:'鸡蛋',q:'3只'},{n:'葱',q:'少许'}],tip:'平菇撕条，先炒鸡蛋再合炒，鲜嫩下饭'},
+    {name:'红烧茄子',type:'veg',ingr:[{n:'茄子',q:'3根'},{n:'大蒜',q:'4瓣'},{n:'酱油',q:'2勺'}],tip:'茄子腌盐出水，少油煸透，蒜香红烧入味'},
+    {name:'炒土豆丝',type:'veg',ingr:[{n:'土豆',q:'3个'},{n:'醋',q:'1勺'},{n:'葱段',q:'适量'}],tip:'土豆丝泡水去淀粉，大火爆炒，酸辣爽口'},
+  ],
+  夏:[
+    {name:'莴苣炒木耳',type:'veg',ingr:[{n:'莴苣',q:'250g',s:true},{n:'黑木耳',q:'50g'}],tip:'木耳泡发，莴苣切片，清爽大火快炒'},
+    {name:'香菇炒青椒',type:'veg',ingr:[{n:'香菇',q:'200g'},{n:'青椒',q:'2个'},{n:'大蒜',q:'3瓣'}],tip:'香菇切片爆香，青椒大火炒出虎皮'},
+    {name:'平菇豆腐煮',type:'veg',ingr:[{n:'平菇',q:'300g'},{n:'嫩豆腐',q:'1块'},{n:'葱',q:'少许'}],tip:'平菇豆腐一锅煮，清汤淡口，夏天消暑'},
+    {name:'地三鲜',type:'veg',ingr:[{n:'茄子',q:'1根'},{n:'土豆',q:'1个'},{n:'青椒',q:'2个'},{n:'大蒜',q:'3瓣'}],tip:'茄子土豆分别过油，大火蒜香翻炒'},
+    {name:'丝瓜炒鸡蛋',type:'veg',ingr:[{n:'丝瓜',q:'2根',s:true},{n:'鸡蛋',q:'2只'}],tip:'丝瓜出水快，先炒蛋再下丝瓜，大火3分钟'},
+    {name:'清炒黄瓜',type:'veg',ingr:[{n:'黄瓜',q:'2根',s:true},{n:'大蒜',q:'2瓣'}],tip:'拍黄瓜腌出水，爆炒2分钟，清爽解暑'},
+  ],
+  秋:[
+    {name:'莴苣炒香菇',type:'veg',ingr:[{n:'莴苣',q:'250g'},{n:'香菇',q:'150g'},{n:'大蒜',q:'2瓣'}],tip:'莴苣切片，香菇切片，大火快炒提鲜'},
+    {name:'平菇炒肉片',type:'veg',ingr:[{n:'平菇',q:'300g'},{n:'猪肉片',q:'100g'},{n:'葱',q:'少许'}],tip:'少量肉片增香，平菇吸油入味，大火快炒'},
+    {name:'香菇烧南瓜',type:'veg',ingr:[{n:'香菇',q:'150g'},{n:'南瓜',q:'300g',s:true},{n:'酱油',q:'1勺'}],tip:'南瓜切块先蒸软，香菇炒香后合烧收汁'},
+    {name:'百叶结烧肉',type:'veg',ingr:[{n:'猪五花',q:'400g'},{n:'百叶结',q:'200g'},{n:'酱油',q:'2勺'},{n:'冰糖',q:'适量'}],tip:'百叶结提前泡软，与五花肉同烧，小火收汁入味'},
+    {name:'油面筋塞肉',type:'veg',ingr:[{n:'油面筋',q:'200g'},{n:'猪肉馅',q:'200g'},{n:'酱油',q:'1勺'}],tip:'肉馅塞入面筋，红烧汁煨20分钟，面筋吸满肉汁'},
+    {name:'菠萝咕咾肉',type:'veg',ingr:[{n:'猪里脊',q:'300g'},{n:'菠萝',q:'150g'},{n:'番茄酱',q:'2勺'},{n:'白醋',q:'1勺'}],tip:'里脊裹淀粉炸脆，糖醋汁翻炒，菠萝提鲜解腻'},
+    {name:'红烧茄子',type:'veg',ingr:[{n:'茄子',q:'3根'},{n:'大蒜',q:'4瓣'},{n:'酱油',q:'2勺'}],tip:'茄子腌盐出水，少油煸透，蒜香红烧入味'},
+    {name:'炒土豆丝',type:'veg',ingr:[{n:'土豆',q:'3个'},{n:'醋',q:'1勺'},{n:'葱段',q:'适量'}],tip:'土豆丝泡水去淀粉，大火爆炒，酸辣爽口'},
+    {name:'地三鲜',type:'veg',ingr:[{n:'茄子',q:'1根'},{n:'土豆',q:'1个'},{n:'青椒',q:'2个'},{n:'大蒜',q:'3瓣'}],tip:'茄子土豆分别过油，大火蒜香翻炒'},
+  ],
+  冬:[
+    {name:'香菇炒青菜',type:'veg',ingr:[{n:'香菇',q:'200g'},{n:'青菜',q:'250g',s:true},{n:'大蒜',q:'2瓣'}],tip:'香菇先煸出香味，青菜大火翻炒，鲜甜清淡'},
+    {name:'平菇炒鸡蛋',type:'veg',ingr:[{n:'平菇',q:'300g'},{n:'鸡蛋',q:'3只'},{n:'葱',q:'少许'}],tip:'平菇撕条，先炒鸡蛋再合炒，鲜嫩下饭'},
+    {name:'香菇烧豆腐',type:'veg',ingr:[{n:'香菇',q:'200g'},{n:'老豆腐',q:'1块'},{n:'酱油',q:'1勺'}],tip:'香菇提鲜，豆腐吸汁，小火慢烧入味'},
+    {name:'红烧大排',type:'veg',ingr:[{n:'猪大排',q:'3块'},{n:'酱油',q:'3勺'},{n:'冰糖',q:'适量'},{n:'料酒',q:'适量'}],tip:'大排拍松腌制，油煎上色，红烧20分钟收汁'},
+    {name:'红烧茄子',type:'veg',ingr:[{n:'茄子',q:'3根'},{n:'大蒜',q:'4瓣'},{n:'酱油',q:'2勺'}],tip:'茄子腌盐出水，少油煸透，蒜香红烧入味'},
+    {name:'炒土豆丝',type:'veg',ingr:[{n:'土豆',q:'3个'},{n:'醋',q:'1勺'},{n:'葱段',q:'适量'}],tip:'土豆丝泡水去淀粉，大火爆炒，酸辣爽口'},
+  ]
+};
+
+const MEAT_DISHES={
+  春:[
+    {name:'春笋炒肉丝',type:'meat',ingr:[{n:'春笋',q:'200g',s:true},{n:'猪里脊',q:'150g'},{n:'料酒',q:'少许'}],tip:'笋提前煮熟去涩，里脊上浆腌制'},
+    {name:'红烧草鱼',type:'meat',ingr:[{n:'草鱼',q:'1条',s:true},{n:'酱油',q:'2勺'},{n:'冰糖',q:'少许'}],tip:'鱼先煎定型再红烧，苏式偏甜'},
+    {name:'糖醋排骨',type:'meat',ingr:[{n:'猪肋排',q:'500g'},{n:'醋',q:'2勺'},{n:'冰糖',q:'适量'}],tip:'糖醋比例2:1，小火收汁亮色'},
+    {name:'鲫鱼蒸蛋',type:'meat',ingr:[{n:'河鲫鱼',q:'1条',s:true},{n:'鸡蛋',q:'2只'},{n:'姜',q:'少许'}],tip:'鱼蒸至半熟倒入蛋液，嫩滑双享'},
+    {name:'响油鳝糊',type:'meat',ingr:[{n:'鳝鱼',q:'300g',s:true},{n:'姜',q:'适量'},{n:'酱油',q:'2勺'}],tip:'苏州名菜，鳝丝爆炒后淋热油激香'},
+  ],
+  夏:[
+    {name:'清蒸鲈鱼',type:'meat',ingr:[{n:'鲈鱼',q:'1条',s:true},{n:'姜丝',q:'适量'},{n:'葱',q:'适量'}],tip:'大火蒸8分钟，淋热油激香'},
+    {name:'茭白炒肉片',type:'meat',ingr:[{n:'茭白',q:'250g',s:true},{n:'猪肉片',q:'150g'}],tip:'茭白切薄片，大火爆炒入味'},
+    {name:'三虾豆腐',type:'meat',ingr:[{n:'虾仁',q:'150g'},{n:'虾籽',q:'少许'},{n:'嫩豆腐',q:'1块'}],tip:'苏州夏日名菜，取虾仁虾籽虾脑'},
+    {name:'盐水虾',type:'meat',ingr:[{n:'活虾',q:'500g'},{n:'姜片',q:'适量'},{n:'葱段',q:'适量'}],tip:'冷水下锅，水开后煮3分钟，放凉蘸酱油'},
+    {name:'油爆虾',type:'meat',ingr:[{n:'活虾',q:'500g'},{n:'酱油',q:'2勺'},{n:'糖',q:'1勺'},{n:'葱姜',q:'适量'}],tip:'虾剪须热油爆炒，大火收汁，苏式甜口'},
+    {name:'红烧罗氏虾',type:'meat',ingr:[{n:'罗氏虾',q:'500g'},{n:'酱油',q:'2勺'},{n:'冰糖',q:'少许'},{n:'葱姜',q:'适量'}],tip:'虾煎至变色，红烧收汁，苏州夏季时令'},
+    {name:'蒜香龙虾',type:'meat',ingr:[{n:'小龙虾',q:'1kg'},{n:'蒜头',q:'1整颗'},{n:'黄油',q:'30g'}],tip:'龙虾对半切，蒜蓉爆香后大火翻炒5分钟'},
+  ],
+  秋:[
+    {name:'清蒸大闸蟹',type:'meat',ingr:[{n:'大闸蟹',q:'4只',s:true},{n:'姜',q:'适量'},{n:'醋',q:'适量'}],tip:'蟹腹朝上蒸12分钟，蘸姜醋解寒'},
+    {name:'芋头红烧肉',type:'meat',ingr:[{n:'芋头',q:'300g',s:true},{n:'猪五花',q:'400g'},{n:'酱油',q:'2勺'}],tip:'苏式红烧加冰糖，小火慢收汁'},
+    {name:'白萝卜炖牛腩',type:'meat',ingr:[{n:'牛腩',q:'400g'},{n:'白萝卜',q:'300g'},{n:'酱油',q:'2勺'}],tip:'牛腩焯水，慢炖1.5小时软烂'},
+    {name:'红烧大排',type:'meat',ingr:[{n:'猪大排',q:'3块'},{n:'酱油',q:'3勺'},{n:'冰糖',q:'适量'},{n:'料酒',q:'适量'}],tip:'大排拍松腌制，油煎上色，红烧20分钟收汁'},
+  ],
+  冬:[
+    {name:'红烧牛肉',type:'meat',ingr:[{n:'牛腩',q:'500g'},{n:'胡萝卜',q:'150g'},{n:'酱油',q:'3勺'}],tip:'焯水后小火炖1.5小时，软烂入味'},
+    {name:'红烧螺蛳',type:'meat',ingr:[{n:'螺蛳',q:'500g',s:true},{n:'姜',q:'适量'},{n:'料酒',q:'2勺'}],tip:'提前吐沙两天，大火爆炒入味'},
+    {name:'雪里蕻炒肉丝',type:'meat',ingr:[{n:'雪里蕻',q:'200g',s:true},{n:'猪肉丝',q:'150g'}],tip:'雪里蕻浸泡减咸，大火快炒'},
+    {name:'红烧大排',type:'meat',ingr:[{n:'猪大排',q:'3块'},{n:'酱油',q:'3勺'},{n:'冰糖',q:'适量'},{n:'料酒',q:'适量'}],tip:'大排拍松腌制，油煎上色，红烧20分钟收汁'},
+  ]
+};
+
+const QUICK_SOUPS={
+  春:[
+    {name:'荠菜豆腐羹',type:'soup',ingr:[{n:'荠菜',q:'150g',s:true},{n:'嫩豆腐',q:'1块'}],tip:'荠菜焯水，豆腐轻推，10分钟'},
+    {name:'豌豆苗蛋花汤',type:'soup',ingr:[{n:'豌豆苗',q:'150g',s:true},{n:'鸡蛋',q:'1只'}],tip:'水开下蛋花，苗嫩立刻关火'},
+    {name:'香菇蛋花汤',type:'soup',ingr:[{n:'香菇',q:'150g'},{n:'鸡蛋',q:'2只'},{n:'葱',q:'少许'}],tip:'香菇切片煮开，打蛋花，鲜美10分钟'},
+    {name:'番茄蛋花汤',type:'soup',ingr:[{n:'西红柿',q:'2个'},{n:'鸡蛋',q:'2只'}],tip:'最快手的汤，10分钟搞定'},
+  ],
+  夏:[
+    {name:'丝瓜毛豆汤',type:'soup',ingr:[{n:'丝瓜',q:'200g',s:true},{n:'毛豆',q:'100g',s:true}],tip:'5分钟即好，清爽消暑'},
+    {name:'平菇豆腐汤',type:'soup',ingr:[{n:'平菇',q:'200g'},{n:'嫩豆腐',q:'1块'}],tip:'平菇清甜，豆腐嫩滑，10分钟快手汤'},
+    {name:'冬瓜薏仁汤',type:'soup',ingr:[{n:'冬瓜',q:'300g'},{n:'薏仁',q:'50g'}],tip:'薏仁提前泡，祛湿快手汤'},
+    {name:'番茄蛋花汤',type:'soup',ingr:[{n:'西红柿',q:'2个'},{n:'鸡蛋',q:'2只'}],tip:'最快手的汤，10分钟搞定'},
+  ],
+  秋:[
+    {name:'香菇莴苣汤',type:'soup',ingr:[{n:'香菇',q:'150g'},{n:'莴苣',q:'200g'}],tip:'香菇提鲜，莴苣清甜，15分钟好喝'},
+    {name:'山药枸杞汤',type:'soup',ingr:[{n:'山药',q:'300g'},{n:'枸杞',q:'20g'},{n:'红枣',q:'5颗'}],tip:'材料下锅炖30分钟，滋补简单'},
+    {name:'白萝卜丝汤',type:'soup',ingr:[{n:'白萝卜',q:'400g'},{n:'姜',q:'少许'}],tip:'萝卜丝入汤，15分钟即好'},
+    {name:'番茄蛋花汤',type:'soup',ingr:[{n:'西红柿',q:'2个'},{n:'鸡蛋',q:'2只'}],tip:'快手暖汤，老少皆宜'},
+  ],
+  冬:[
+    {name:'大白菜豆腐汤',type:'soup',ingr:[{n:'大白菜',q:'400g'},{n:'冻豆腐',q:'1块'},{n:'姜',q:'少许'}],tip:'冻豆腐吸汤，10分钟暖身'},
+    {name:'香菇平菇汤',type:'soup',ingr:[{n:'香菇',q:'100g'},{n:'平菇',q:'150g'},{n:'葱',q:'少许'}],tip:'双菇合煮提鲜，15分钟清甜好汤'},
+    {name:'萝卜丝蛋汤',type:'soup',ingr:[{n:'白萝卜',q:'300g'},{n:'鸡蛋',q:'2只'}],tip:'萝卜煮软，打蛋花，快手暖汤'},
+    {name:'番茄蛋花汤',type:'soup',ingr:[{n:'西红柿',q:'2个'},{n:'鸡蛋',q:'2只'}],tip:'冬日暖汤，10分钟搞定'},
+  ]
+};
+
+const FANCY_SOUPS={
+  春:[
+    {name:'鲫鱼豆腐汤',type:'soup',ingr:[{n:'河鲫鱼',q:'1条',s:true},{n:'老豆腐',q:'1块'},{n:'姜片',q:'少许'}],tip:'鱼先煎至金黄，汤白鲜美'},
+    {name:'春笋排骨汤',type:'soup',ingr:[{n:'春笋',q:'200g',s:true},{n:'猪肋排',q:'400g'}],tip:'笋鲜排骨香，慢炖45分钟'},
+    {name:'腌笃鲜',type:'soup',ingr:[{n:'春笋',q:'150g',s:true},{n:'咸肉',q:'100g'},{n:'猪肋排',q:'300g'}],tip:'苏州春天经典，鲜咸交融，慢煨1小时'},
+    {name:'香菇鸡汤',type:'soup',ingr:[{n:'香菇',q:'200g'},{n:'鸡腿',q:'2只'},{n:'姜',q:'少许'}],tip:'香菇鲜味融入鸡汤，慢炖45分钟清甜'},
+  ],
+  夏:[
+    {name:'冬瓜排骨汤',type:'soup',ingr:[{n:'冬瓜',q:'400g'},{n:'猪肋排',q:'400g'}],tip:'慢炖40分钟，清热消暑'},
+    {name:'老鸭冬瓜汤',type:'soup',ingr:[{n:'鸭肉',q:'半只',s:true},{n:'冬瓜',q:'300g'},{n:'薏仁',q:'50g'}],tip:'夏日祛湿经典，炖1小时'},
+    {name:'绿豆百合汤',type:'soup',ingr:[{n:'绿豆',q:'100g',s:true},{n:'百合',q:'50g'},{n:'冰糖',q:'适量'}],tip:'绿豆提前浸泡，消暑清热甜汤'},
+    {name:'平菇豆腐汤',type:'soup',ingr:[{n:'平菇',q:'300g'},{n:'嫩豆腐',q:'1块'},{n:'葱',q:'少许'}],tip:'平菇清甜，豆腐嫩滑，10分钟清汤'},
+  ],
+  秋:[
+    {name:'莲藕排骨汤',type:'soup',ingr:[{n:'莲藕',q:'400g',s:true},{n:'猪肋排',q:'500g'},{n:'姜',q:'少许'}],tip:'慢炖1小时，藕断丝连汤色乳白'},
+    {name:'山药枸杞鸡汤',type:'soup',ingr:[{n:'山药',q:'300g'},{n:'鸡腿',q:'2只'},{n:'枸杞',q:'20g'}],tip:'山药去皮戴手套，滋补养阴'},
+    {name:'白萝卜牛腩汤',type:'soup',ingr:[{n:'白萝卜',q:'400g'},{n:'牛腩',q:'400g'},{n:'姜',q:'适量'}],tip:'牛腩焯水，慢炖1.5小时软烂'},
+    {name:'香菇莴苣汤',type:'soup',ingr:[{n:'香菇',q:'150g'},{n:'莴苣',q:'200g'},{n:'盐',q:'少许'}],tip:'香菇提鲜，莴苣清甜，15分钟清淡好汤'},
+  ],
+  冬:[
+    {name:'腌笃鲜',type:'soup',ingr:[{n:'冬笋',q:'200g',s:true},{n:'腊肉',q:'100g',s:true},{n:'猪蹄',q:'300g'}],tip:'苏州经典冬汤，慢煨1小时鲜美浓郁'},
+    {name:'萝卜羊排汤',type:'soup',ingr:[{n:'白萝卜',q:'400g'},{n:'羊排',q:'500g'},{n:'枸杞',q:'适量'}],tip:'白萝卜去膻，慢炖1小时驱寒'},
+    {name:'藏书羊肉锅',type:'soup',ingr:[{n:'羊肉',q:'500g'},{n:'白萝卜',q:'300g'},{n:'姜',q:'适量'}],tip:'苏州藏书白汤，清炖1.5小时蘸蒜泥醋'},
+    {name:'香菇平菇炖鸡',type:'soup',ingr:[{n:'香菇',q:'150g'},{n:'平菇',q:'150g'},{n:'鸡腿',q:'2只'},{n:'姜',q:'少许'}],tip:'双菇提鲜，鸡肉软烂，慢炖45分钟鲜香浓郁'},
+  ]
+};
+
+const NOTES={
+  春:{quick:'🌱 快手模式：熟食省事，叶子菜快炒，再来道素菜，荠菜豌豆苗正当令。',fancy:'🌸 精致模式：响油鳝糊、腌笃鲜是苏州春天的执念，香菇莴苣素菜清口。'},
+  夏:{quick:'🌿 快手模式：熟食配叶子菜，素菜省时，丝瓜毛豆汤5分钟消暑一绝。',fancy:'🦐 精致模式：油爆虾、盐水虾是苏州夏天主角，平菇豆腐汤清甜解暑。'},
+  秋:{quick:'🍂 快手模式：熟食省时，叶子菜快炒，素菜家常，秋天青菜正甜。',fancy:'🦀 精致模式：大闸蟹是苏州秋天主角，香菇莴苣汤清甜提鲜，素菜下饭。'},
+  冬:{quick:'❄️ 快手模式：熟食配叶子菜，素菜家常，双菇汤暖身又鲜美。',fancy:'🔥 精致模式：红烧螺蛳、腌笃鲜是苏州冬天的执念，香菇平菇炖鸡鲜香浓郁。'},
+};
+
+const TYPE_LABEL={meat:'荤',veg:'素',soup:'汤',readymade:'熟食'};
+const TYPE_CLASS={meat:'tag-meat',veg:'tag-veg',soup:'tag-soup',readymade:'tag-readymade'};
+
+let currentMode='quick', checkedSet=new Set(), todayGrocery=[], todayDishes=[];
+
+function getSeason(m){return [3,4,5].includes(m)?'春':[6,7,8].includes(m)?'夏':[9,10,11].includes(m)?'秋':'冬';}
+function getJieqi(month,day){let best='节气中';for(let i=JIEQI_MAP.length-1;i>=0;i--){const[m,d,name]=JIEQI_MAP[i];if(month>m||(month===m&&day>=d)){best=name;break;}}return best;}
+function pick(arr,n){return [...arr].sort(()=>Math.random()-0.5).slice(0,n);}
+
+function setMode(mode){
+  currentMode=mode;
+  document.getElementById('btn-quick').className='mode-btn'+(mode==='quick'?' active':'');
+  document.getElementById('btn-fancy').className='mode-btn'+(mode==='fancy'?' active':'');
+  generate();
+}
+
+function generate(){
+  checkedSet.clear();
+  const now=new Date(),month=now.getMonth()+1,day=now.getDate(),season=getSeason(month);
+  document.getElementById('week-label').textContent=WEEKS[now.getDay()]+'  '+month+'月'+day+'日';
+  document.getElementById('jieqi-badge').textContent=getJieqi(month,day);
+  document.getElementById('ai-note').textContent=NOTES[season][currentMode];
+  const leaf={...pick(LEAF_VEG[season],1)[0],type:'veg',isLeaf:true};
+  if(currentMode==='quick'){
+    todayDishes=[pick(READYMADE,1)[0], leaf, pick(VEG_DISHES[season],1)[0], pick(QUICK_SOUPS[season],1)[0]];
+  } else {
+    todayDishes=[pick(MEAT_DISHES[season],1)[0], leaf, pick(VEG_DISHES[season],1)[0], pick(FANCY_SOUPS[season],1)[0]];
+  }
+  document.getElementById('dish-cards').innerHTML=todayDishes.map(dish=>`
+    <div class="dish-card${dish.isLeaf?' leaf':''}">
+      <div class="dish-top">
+        <span class="dish-name">${dish.name}</span>
+        <div class="tags">
+          ${dish.isLeaf?'<span class="dish-tag tag-leaf">叶子菜</span>':''}
+          <span class="dish-tag ${TYPE_CLASS[dish.type]||'tag-veg'}">${TYPE_LABEL[dish.type]||'素'}</span>
+        </div>
+      </div>
+      <div class="dish-ingr">食材：${dish.ingr.map(i=>`${i.n} ${i.q||''}`).join('、')}</div>
+      <div class="dish-tip">💡 ${dish.tip}</div>
+    </div>
+  `).join('');
+  const map={};
+  todayDishes.forEach(d=>d.ingr.forEach(i=>{if(!map[i.n])map[i.n]=i;}));
+  todayGrocery=Object.values(map);
+  renderGrocery(); updateProgress();
+}
+
+function renderGrocery(){
+  const el=document.getElementById('grocery-grid');
+  el.innerHTML=todayGrocery.map(item=>{
+    const done=checkedSet.has(item.n);
+    return `<div class="grocery-row" data-key="${item.n}">
+      <div class="grocery-left">
+        <div class="cb ${done?'done':''}"></div>
+        <span class="gr-name ${done?'done':''}">${item.n}</span>
+      </div>
+      <div class="gr-right">
+        ${item.rm?'<div class="readymade-dot"></div>':item.leaf?'<div style="width:10px;height:3px;border-radius:2px;background:#1d9e75;flex-shrink:0"></div>':item.s?'<div class="season-dot"></div>':''}
+        <span class="gr-qty">${item.q||''}</span>
+      </div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.grocery-row').forEach(row=>{
+    row.addEventListener('click',()=>{
+      const k=row.dataset.key;
+      checkedSet.has(k)?checkedSet.delete(k):checkedSet.add(k);
+      renderGrocery(); updateProgress();
+    });
+  });
+}
+
+function updateProgress(){
+  const total=todayGrocery.length,done=checkedSet.size;
+  document.getElementById('progress').style.width=(total>0?Math.round(done/total*100):0)+'%';
+  document.getElementById('progress-label').textContent=
+    done===0?'还未开始采购':done<total?`已买 ${done}/${total} 种`:'✅ 食材备齐，开始做饭！';
+}
+
+function copyList(){
+  const now=new Date();
+  let text=`🧺 今日菜单 ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}\n`;
+  todayDishes.forEach(dish=>{
+    text+=`\n【${dish.name}】${TYPE_LABEL[dish.type]||'素'}\n`;
+    text+=`食材：${dish.ingr.map(i=>`${i.n}${i.q?' '+i.q:''}`).join('、')}\n`;
+  });
+  text+=`\n📋 买菜清单\n`;
+  todayGrocery.forEach(item=>{
+    const mark=checkedSet.has(item.n)?'✓':'○';
+    text+=`${mark} ${item.n}  ${item.q||''}${item.rm?' 🟣':item.s?' 🟢':''}\n`;
+  });
+  navigator.clipboard.writeText(text).then(()=>showToast('已复制到剪贴板 ✓')).catch(()=>showToast('请手动长按复制'));
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+generate();
+</script>
+</body>
+</html>
